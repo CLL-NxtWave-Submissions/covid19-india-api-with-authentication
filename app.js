@@ -8,7 +8,7 @@ const jwt = require("jsonwebtoken");
 const app = express();
 app.use(express.json());
 
-const secretKeyForJWT = "AUTHORIZATION_SECRET";
+const SECRET_KEY_FOR_JWT = "AUTHORIZATION_SECRET";
 
 const covid19IndiaDatabaseFilePath = path.join(
   __dirname,
@@ -37,7 +37,41 @@ const initializeDBAndServer = async () => {
 
 initializeDBAndServer();
 
+/* 
+    Express.js middleware to check
+    user authorization for the 
+    requested resource.
+
+*/
+const checkUserAuthorization = (req, res, next) => {
+  const authTokenStringFromRequestHeader = req.headers.authorization;
+
+  if (authTokenStringFromRequestHeader === undefined) {
+    res.status(401);
+    res.send("Invalid JWT Token");
+  } else {
+    const jwtFromAuthTokenString = authTokenStringFromRequestHeader.split(
+      " "
+    )[1]; // token string format: "Bearer JSON_WEB_TOKEN"
+
+    jwt.verify(
+      jwtFromAuthTokenString,
+      SECRET_KEY_FOR_JWT,
+      (hasVerificationError, userIdentifiablePayloadOnSuccess) => {
+        if (hasVerificationError) {
+          res.status(401);
+          res.send("Invalid JWT Token");
+        } else {
+          next(); // Control given to next middleware/handler for
+          // the API end-point matching the user request.
+        }
+      }
+    );
+  }
+};
+
 /*
+
     End-Point 1: POST /login
     ------------
     To accept or reject user login 
@@ -70,13 +104,28 @@ app.post("/login", async (req, res) => {
     );
     if (isPasswordValid) {
       const userIdentifiablePayload = { username };
-      const jwtToken = jwt.sign(userIdentifiablePayload, secretKeyForJWT);
+      const jwtToken = jwt.sign(userIdentifiablePayload, SECRET_KEY_FOR_JWT);
       res.send({ jwtToken });
     } else {
       res.status(400);
       res.send("Invalid password");
     }
   }
+});
+
+/*
+    End-Point 2     : GET /states
+    Header Name     : Authorization
+    Header Value    : Bearer JSON_WEB_TOKEN
+    -----------------
+    To fetch data of all states from
+    the state table after prior user
+    login and with Authorization header
+    that has Bearer token as the generated
+    JSON Web Token at login. 
+*/
+app.get("/states", checkUserAuthorization, (req, res) => {
+  res.send("Authorization success. States data on the way...");
 });
 
 module.exports = app;
