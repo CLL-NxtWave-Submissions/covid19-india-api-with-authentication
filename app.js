@@ -198,4 +198,38 @@ app.post("/districts", checkUserAuthorization, async (req, res) => {
   res.send("District Successfully Added");
 });
 
+/*
+    End-Point 5  : GET /districts/:districtId
+    Header Name  : Authorization
+    Header Value : Bearer JSON_WEB_TOKEN
+    --------------
+    To fetch specific district data from the
+    district table, after checking user 
+    authorization through
+    middleware: checkUserAuthorization
+*/
+app.get("/districts/:districtId", checkUserAuthorization, async (req, res) => {
+  const { districtId } = req.params;
+  const queryToGetSpecificDistrictData = `
+      SELECT *
+      FROM district
+      WHERE district_id = ${districtId};
+      `;
+
+  const specificDistrictData = await covid19IndiaDBConnectionObj.get(
+    queryToGetSpecificDistrictData
+  );
+  const processedSpecificDistrictData = {
+    districtId: specificDistrictData.district_id,
+    districtName: specificDistrictData.district_name,
+    stateId: specificDistrictData.state_id,
+    cases: specificDistrictData.cases,
+    cured: specificDistrictData.cured,
+    active: specificDistrictData.active,
+    deaths: specificDistrictData.deaths,
+  };
+
+  res.send(processedSpecificDistrictData);
+});
+
 module.exports = app;
