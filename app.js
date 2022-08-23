@@ -172,4 +172,30 @@ app.get("/states/:stateId", checkUserAuthorization, async (req, res) => {
   res.send(processedSpecificStateData);
 });
 
+/*
+    End-Point 4  : POST /districts
+    Header Name  : Authorization,
+    Header Value : Bearer JSON_WEB_TOKEN
+    --------------
+    To add new district data to
+    the district table after checking 
+    user authorization through the 
+    middleware: checkUserAuthorization
+*/
+app.post("/districts", checkUserAuthorization, async (req, res) => {
+  const { districtName, stateId, cases, cured, active, deaths } = req.body;
+
+  const queryToAddNewDistrictData = `
+    INSERT INTO
+        district (district_name, state_id, cases, cured, active, deaths)
+    VALUES
+        ('${districtName}', ${stateId}, ${cases}, ${cured}, ${active}, ${deaths});
+    `;
+
+  const addNewDistrictDBResponse = await covid19IndiaDBConnectionObj.run(
+    queryToAddNewDistrictData
+  );
+  res.send("District Successfully Added");
+});
+
 module.exports = app;
