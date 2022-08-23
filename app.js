@@ -259,4 +259,36 @@ app.delete(
   }
 );
 
+/*
+  End-Point 7  : PUT /districts/:districtId
+  Header Name  : Authorization
+  Header Value : Bearer JSON_WEB_TOKEN
+  --------------
+  To update specific district data with
+  id: districtId, after checking user
+  authorization with the
+  middleware: checkUserAuthorization
+*/
+app.put("/districts/:districtId", checkUserAuthorization, async (req, res) => {
+  const { districtId } = req.params;
+  const { districtName, stateId, cases, cured, active, deaths } = req.body;
+
+  const queryToUpdateSpecificDistrict = `
+    UPDATE 
+        district
+    SET
+        district_name = '${districtName}',
+        state_id = ${stateId},
+        cases = ${cases},
+        cured = ${cured},
+        active = ${active},
+        deaths = ${deaths}
+    WHERE
+        district_id = ${districtId};
+    `;
+
+  await covid19IndiaDBConnectionObj.run(queryToUpdateSpecificDistrict);
+  res.send("District Details Updated");
+});
+
 module.exports = app;
