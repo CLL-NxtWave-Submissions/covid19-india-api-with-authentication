@@ -291,4 +291,44 @@ app.put("/districts/:districtId", checkUserAuthorization, async (req, res) => {
   res.send("District Details Updated");
 });
 
+/*
+    End-Point 8  : GET /states/:stateId/stats
+    Header Name  : Authorization
+    Header Value : Bearer JSON_WEB_TOKEN
+    --------------
+    To fetch aggregated stats of covid-19
+    cases for a specific state, combining all
+    districts data within the state. Request
+    is served only after checking user authorization
+    with middleware: checkUserAuthorization
+
+*/
+app.get("/states/:stateId/stats", checkUserAuthorization, async (req, res) => {
+  const { stateId } = req.params;
+
+  const queryToFetchAggregatedCovidDataForSpecificState = `
+    SELECT 
+        SUM(cases) AS total_cases,
+        SUM(cured) AS total_cured,
+        SUM(active) AS total_active,
+        SUM(deaths) AS total_deaths
+    FROM
+        district
+    WHERE
+        state_id = ${stateId};
+    `;
+
+  const aggregatedCovidDataForSpecificState = await covid19IndiaDBConnectionObj.get(
+    queryToFetchAggregatedCovidDataForSpecificState
+  );
+  const processedAggregatedCovidDataForSpecificState = {
+    totalCases: aggregatedCovidDataForSpecificState.total_cases,
+    totalCured: aggregatedCovidDataForSpecificState.total_cured,
+    totalActive: aggregatedCovidDataForSpecificState.total_active,
+    totalDeaths: aggregatedCovidDataForSpecificState.total_deaths,
+  };
+
+  res.send(processedAggregatedCovidDataForSpecificState);
+});
+
 module.exports = app;
