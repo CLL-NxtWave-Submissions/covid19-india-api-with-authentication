@@ -232,4 +232,31 @@ app.get("/districts/:districtId", checkUserAuthorization, async (req, res) => {
   res.send(processedSpecificDistrictData);
 });
 
+/*
+    End-Point 6  : DELETE /districts/:districtId
+    Header Name  : Authorization
+    Header Value : Bearer JSON_WEB_TOKEN
+    --------------
+    To delete specific district with
+    id: districtId, after checking user
+    authorization with 
+    middleware: checkUserAuthorization
+*/
+app.delete(
+  "/districts/:districtId",
+  checkUserAuthorization,
+  async (req, res) => {
+    const { districtId } = req.params;
+    const queryToDeleteSpecificDistrictData = `
+    DELETE FROM
+        district
+    WHERE
+        district_id = ${districtId};
+    `;
+
+    await covid19IndiaDBConnectionObj.run(queryToDeleteSpecificDistrictData);
+    res.send("District Removed");
+  }
+);
+
 module.exports = app;
