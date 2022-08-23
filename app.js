@@ -141,4 +141,35 @@ app.get("/states", checkUserAuthorization, async (req, res) => {
   res.send(allStatesProcessedData);
 });
 
+/*
+    End-Point 3  : GET /states/:stateId
+    Header Name  : Authorization
+    Header Value : Bearer JSON_WEB_TOKEN
+    --------------
+    To fetch data of specific state with
+    id: stateId, after ensuring user has
+    authorization to access this data,
+    through the 
+    middleware: checkUserAuthorization
+*/
+app.get("/states/:stateId", checkUserAuthorization, async (req, res) => {
+  const { stateId } = req.params;
+  const queryToGetSpecificStateData = `
+    SELECT *
+    FROM state
+    WHERE state_id = ${stateId};
+    `;
+
+  const specificStateData = await covid19IndiaDBConnectionObj.get(
+    queryToGetSpecificStateData
+  );
+  const processedSpecificStateData = {
+    stateId: specificStateData.state_id,
+    stateName: specificStateData.state_name,
+    population: specificStateData.population,
+  };
+
+  res.send(processedSpecificStateData);
+});
+
 module.exports = app;
