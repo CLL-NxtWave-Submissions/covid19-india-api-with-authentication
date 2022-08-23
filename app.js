@@ -124,8 +124,21 @@ app.post("/login", async (req, res) => {
     that has Bearer token as the generated
     JSON Web Token at login. 
 */
-app.get("/states", checkUserAuthorization, (req, res) => {
-  res.send("Authorization success. States data on the way...");
+app.get("/states", checkUserAuthorization, async (req, res) => {
+  const queryToFetchDataOfAllStates = `
+    SELECT *
+    FROM state;
+    `;
+
+  const allStatesData = await covid19IndiaDBConnectionObj.all(
+    queryToFetchDataOfAllStates
+  );
+  const allStatesProcessedData = allStatesData.map((currentStateData) => ({
+    stateId: currentStateData.state_id,
+    stateName: currentStateData.state_name,
+    population: currentStateData.population,
+  }));
+  res.send(allStatesProcessedData);
 });
 
 module.exports = app;
